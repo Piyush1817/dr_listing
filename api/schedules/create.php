@@ -1,5 +1,13 @@
 <?php
 
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
+error_reporting(E_ALL);
+
+echo "START<br>";
+
 require_once "../../includes/cors.php";
 require_once "../../includes/response.php";
 require_once "../../config/db.php";
@@ -10,10 +18,8 @@ require_once "../../config/db.php";
 |--------------------------------------------------------------------------
 */
 
-$hospital_doctor_id = $_POST['hospital_doctor_id'] ?? '';
-$day_of_week = $_POST['day_of_week'] ?? '';
-$start_time = $_POST['start_time'] ?? '';
-$end_time = $_POST['end_time'] ?? '';
+$doctor_id = $_POST['doctor_id'] ?? '';
+$specialization_id = $_POST['specialization_id'] ?? '';
 
 /*
 |--------------------------------------------------------------------------
@@ -21,54 +27,75 @@ $end_time = $_POST['end_time'] ?? '';
 |--------------------------------------------------------------------------
 */
 
-if(
-    empty($hospital_doctor_id) ||
-    empty($day_of_week) ||
-    empty($start_time) ||
-    empty($end_time)
-) {
+if(empty($doctor_id) || empty($specialization_id)) {
 
-    error("All fields are required");
+    error("Doctor ID and Specialization ID are required");
     exit;
 }
 
 /*
 |--------------------------------------------------------------------------
-| CHECK HOSPITAL DOCTOR MAPPING EXISTS
+| CHECK DOCTOR EXISTS
 |--------------------------------------------------------------------------
 */
 
-$mappingQuery = "
+$doctorQuery = "
 SELECT id
-FROM hospital_doctors
+FROM doctors
 WHERE id = ?
 AND status = 1
 LIMIT 1
 ";
 
-$mappingStmt = $conn->prepare($mappingQuery);
+$doctorStmt = $conn->prepare($doctorQuery);
 
-$mappingStmt->execute([$hospital_doctor_id]);
+$doctorStmt->execute([$doctor_id]);
 
-$mapping = $mappingStmt->fetch(PDO::FETCH_ASSOC);
+$doctor = $doctorStmt->fetch(PDO::FETCH_ASSOC);
 
-if(!$mapping) {
+if(!$doctor) {
 
-    error("Hospital doctor mapping not found");
+    error("Doctor not found");
     exit;
 }
 
 /*
 |--------------------------------------------------------------------------
-| CHECK EXISTING SCHEDULE
+| CHECK SPECIALIZATION EXISTS
+|--------------------------------------------------------------------------
+*/
+
+$specializationQuery = "
+SELECT id
+FROM specialization_masters
+WHERE id = ?
+AND status = 1
+LIMIT 1
+";
+
+$specializationStmt = $conn->prepare($specializationQuery);
+
+$specializationStmt->execute([$specialization_id]);
+
+$specialization = $specializationStmt->fetch(PDO::FETCH_ASSOC);
+
+if(!$specialization) {
+
+    error("Specialization not found");
+    exit;
+}
+
+/*
+|--------------------------------------------------------------------------
+| CHECK EXISTING MAPPING
 |--------------------------------------------------------------------------
 */
 
 $checkQuery = "
 SELECT id, status
-FROM hospital_doctor_schedules
-WHERE hospital_doctor_id = ?
-AND day_of_week = ?
+FROM doctor_specializations
+WHERE doctor_id = ?
+AND specialization_id = ?
 LIMIT 1
 ";
 
@@ -76,38 +103,36 @@ $checkStmt = $conn->prepare($checkQuery);
 
 $checkStmt->execute([
 
-    $hospital_doctor_id,
-    $day_of_week
+    $doctor_id,
+    $specialization_id
 ]);
 
-$schedule = $checkStmt->fetch(PDO::FETCH_ASSOC);
+$mapping = $checkStmt->fetch(PDO::FETCH_ASSOC);
 
 /*
 |--------------------------------------------------------------------------
-| IF SCHEDULE ALREADY ACTIVE
+| ALREADY ACTIVE
 |--------------------------------------------------------------------------
 */
 
-if($schedule && $schedule['status'] == 1) {
+if($mapping && $mapping['status'] == 1) {
 
-    error("Schedule already exists for this day");
+    error("Specialization already assigned");
     exit;
 }
 
 /*
 |--------------------------------------------------------------------------
-| REACTIVATE OLD SCHEDULE
+| REACTIVATE OLD MAPPING
 |--------------------------------------------------------------------------
 */
 
-if($schedule && $schedule['status'] == 0) {
+if($mapping && $mapping['status'] == 0) {
 
     $reactivateQuery = "
-    UPDATE hospital_doctor_schedules
+    UPDATE doctor_specializations
     SET
         status = 1,
-        start_time = ?,
-        end_time = ?,
         updated_at = NOW()
     WHERE id = ?
     ";
@@ -116,18 +141,16 @@ if($schedule && $schedule['status'] == 0) {
 
     $isReactivated = $reactivateStmt->execute([
 
-        $start_time,
-        $end_time,
-        $schedule['id']
+        $mapping['id']
     ]);
 
     if($isReactivated) {
 
-        success("Schedule restored successfully");
+        success("Specialization restored successfully");
 
     } else {
 
-        error("Schedule restore failed");
+        error("Restore failed");
     }
 
     exit;
@@ -135,23 +158,21 @@ if($schedule && $schedule['status'] == 0) {
 
 /*
 |--------------------------------------------------------------------------
-| INSERT NEW SCHEDULE
+| INSERT NEW MAPPING
 |--------------------------------------------------------------------------
 */
 
 $insertQuery = "
-INSERT INTO hospital_doctor_schedules
+INSERT INTO doctor_specializations
 (
-    hospital_doctor_id,
-    day_of_week,
-    start_time,
-    end_time,
+    doctor_id,
+    specialization_id,
     status,
     created_at
 )
 VALUES
 (
-    ?, ?, ?, ?, ?, NOW()
+    ?, ?, ?, NOW()
 )
 ";
 
@@ -159,12 +180,16 @@ $insertStmt = $conn->prepare($insertQuery);
 
 $isInserted = $insertStmt->execute([
 
-    $hospital_doctor_id,
-    $day_of_week,
-    $start_time,
-    $end_time,
+    $doctor_id,
+    $specialization_id,
     1
 ]);
+if(!$isInserted) {
+
+    print_r($insertStmt->errorInfo());
+    exit;
+}
+
 
 /*
 |--------------------------------------------------------------------------
@@ -174,9 +199,9 @@ $isInserted = $insertStmt->execute([
 
 if($isInserted) {
 
-    success("Schedule created successfully");
+    success("Specialization assigned successfully");
 
 } else {
 
-    error("Schedule creation failed");
+    error("Assignment failed");
 }
