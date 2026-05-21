@@ -9,6 +9,7 @@ error_reporting(E_ALL);
 echo "START<br>";
 
 require_once "../../includes/cors.php";
+require_once "../../includes/doctor_auth.php";
 require_once "../../includes/response.php";
 require_once "../../config/db.php";
 
