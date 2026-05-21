@@ -1,35 +1,25 @@
 <?php
 
 require_once "../../includes/cors.php";
-require_once "../../includes/admin_auth.php";
 require_once "../../includes/response.php";
-require_once "../../config/db.php";
 
 /*
 |--------------------------------------------------------------------------
-| FETCH SPECIALIZATIONS
+| START SESSION
 |--------------------------------------------------------------------------
 */
 
-$query = "
+session_start();
 
-SELECT
+/*
+|--------------------------------------------------------------------------
+| DESTROY SESSION
+|--------------------------------------------------------------------------
+*/
 
-    id,
-    name,
-    status,
-    created_at
+session_unset();
 
-FROM specialization_masters
-
-ORDER BY name ASC
-";
-
-$stmt = $conn->prepare($query);
-
-$stmt->execute();
-
-$specializations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+session_destroy();
 
 /*
 |--------------------------------------------------------------------------
@@ -37,4 +27,4 @@ $specializations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 |--------------------------------------------------------------------------
 */
 
-success("Specializations fetched successfully", $specializations);
+success("Logout successful");

@@ -4,6 +4,8 @@ require_once "../../includes/cors.php";
 require_once "../../includes/response.php";
 require_once "../../config/db.php";
 
+session_start();
+
 $email = $_POST['email'] ?? '';
 $password = $_POST['password'] ?? '';
 
@@ -29,6 +31,24 @@ $admin = $adminStmt->fetch(PDO::FETCH_ASSOC);
 
 if($admin && password_verify($password, $admin['password'])) {
 
+    /*
+    |--------------------------------------------------------------------------
+    | STORE ADMIN SESSION
+    |--------------------------------------------------------------------------
+    */
+
+    $_SESSION['admin_id'] = $admin['id'];
+
+    $_SESSION['admin_name'] = $admin['name'];
+
+    $_SESSION['admin_email'] = $admin['email'];
+
+    /*
+    |--------------------------------------------------------------------------
+    | RESPONSE
+    |--------------------------------------------------------------------------
+    */
+
     success("Admin login successful", [
 
         "id" => $admin['id'],
@@ -39,7 +59,6 @@ if($admin && password_verify($password, $admin['password'])) {
 
     exit;
 }
-
 /*
 |--------------------------------------------------------------------------
 | CHECK DOCTOR
@@ -55,6 +74,24 @@ $doctorStmt->execute([$email]);
 $doctor = $doctorStmt->fetch(PDO::FETCH_ASSOC);
 
 if($doctor && password_verify($password, $doctor['password'])) {
+
+    /*
+    |--------------------------------------------------------------------------
+    | STORE DOCTOR SESSION
+    |--------------------------------------------------------------------------
+    */
+
+    $_SESSION['doctor_id'] = $doctor['id'];
+
+    $_SESSION['doctor_name'] = $doctor['name'];
+
+    $_SESSION['doctor_email'] = $doctor['email'];
+
+    /*
+    |--------------------------------------------------------------------------
+    | RESPONSE
+    |--------------------------------------------------------------------------
+    */
 
     success("Doctor login successful", [
 
