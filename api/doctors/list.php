@@ -35,6 +35,23 @@ $doctors = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 /*
 |--------------------------------------------------------------------------
+| ADD PROFILE IMAGE URL
+|--------------------------------------------------------------------------
+*/
+
+foreach($doctors as &$doctor) {
+
+    $doctor['profile_image_url'] =
+
+    !empty($doctor['profile_image'])
+
+    ? "http://localhost/dr_listing/uploads/doctors/" . $doctor['profile_image']
+
+    : null;
+}
+
+/*
+|--------------------------------------------------------------------------
 | RESPONSE
 |--------------------------------------------------------------------------
 */

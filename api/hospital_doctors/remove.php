@@ -1,27 +1,17 @@
 <?php
 
 require_once "../../includes/cors.php";
+require_once "../../includes/doctor_auth.php";
 require_once "../../includes/response.php";
 require_once "../../config/db.php";
 
-/*
-|--------------------------------------------------------------------------
-| GET FORM DATA
-|--------------------------------------------------------------------------
-*/
+$doctor_id = $_SESSION['doctor_id'];
 
-$doctor_id = $_POST['doctor_id'] ?? '';
 $hospital_id = $_POST['hospital_id'] ?? '';
 
-/*
-|--------------------------------------------------------------------------
-| VALIDATION
-|--------------------------------------------------------------------------
-*/
+if(empty($hospital_id)) {
 
-if(empty($doctor_id) || empty($hospital_id)) {
-
-    error("Doctor ID and Hospital ID are required");
+    error("Hospital ID is required");
     exit;
 }
 
@@ -78,12 +68,6 @@ $isRemoved = $removeStmt->execute([
     $doctor_id,
     $hospital_id
 ]);
-
-/*
-|--------------------------------------------------------------------------
-| RESPONSE
-|--------------------------------------------------------------------------
-*/
 
 if($isRemoved) {
 

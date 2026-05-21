@@ -15,7 +15,6 @@ $id = $_GET['id'] ?? '';
 if(empty($id)) {
 
     error("Doctor ID is required");
-    exit;
 }
 
 /*
@@ -57,8 +56,21 @@ $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
 if(!$doctor) {
 
     error("Doctor not found");
-    exit;
 }
+
+/*
+|--------------------------------------------------------------------------
+| ADD PROFILE IMAGE URL
+|--------------------------------------------------------------------------
+*/
+
+$doctor['profile_image_url'] =
+
+!empty($doctor['profile_image'])
+
+? "http://localhost/dr_listing/uploads/doctors/" . $doctor['profile_image']
+
+: null;
 
 /*
 |--------------------------------------------------------------------------

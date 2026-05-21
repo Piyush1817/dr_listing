@@ -1,27 +1,17 @@
 <?php
 
 require_once "../../includes/cors.php";
+require_once "../../includes/doctor_auth.php";
 require_once "../../includes/response.php";
 require_once "../../config/db.php";
 
-/*
-|--------------------------------------------------------------------------
-| GET FORM DATA
-|--------------------------------------------------------------------------
-*/
+$doctor_id = $_SESSION['doctor_id'];
 
-$doctor_id = $_POST['doctor_id'] ?? '';
 $specialization_id = $_POST['specialization_id'] ?? '';
 
-/*
-|--------------------------------------------------------------------------
-| VALIDATION
-|--------------------------------------------------------------------------
-*/
+if(empty($specialization_id)) {
 
-if(empty($doctor_id) || empty($specialization_id)) {
-
-    error("Doctor ID and Specialization ID are required");
+    error("Specialization ID is required");
     exit;
 }
 
@@ -78,12 +68,6 @@ $isRemoved = $removeStmt->execute([
     $doctor_id,
     $specialization_id
 ]);
-
-/*
-|--------------------------------------------------------------------------
-| RESPONSE
-|--------------------------------------------------------------------------
-*/
 
 if($isRemoved) {
 

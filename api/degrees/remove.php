@@ -1,33 +1,23 @@
 <?php
 
 require_once "../../includes/cors.php";
+require_once "../../includes/doctor_auth.php";
 require_once "../../includes/response.php";
 require_once "../../config/db.php";
 
-/*
-|--------------------------------------------------------------------------
-| GET FORM DATA
-|--------------------------------------------------------------------------
-*/
+$doctor_id = $_SESSION['doctor_id'];
 
-$doctor_id = $_POST['doctor_id'] ?? '';
 $degree_id = $_POST['degree_id'] ?? '';
 
-/*
-|--------------------------------------------------------------------------
-| VALIDATION
-|--------------------------------------------------------------------------
-*/
+if(empty($degree_id)) {
 
-if(empty($doctor_id) || empty($degree_id)) {
-
-    error("Doctor ID and Degree ID are required");
+    error("Degree ID is required");
     exit;
 }
 
 /*
 |--------------------------------------------------------------------------
-| CHECK DEGREE MAPPING EXISTS
+| CHECK DEGREE EXISTS
 |--------------------------------------------------------------------------
 */
 
@@ -78,12 +68,6 @@ $isRemoved = $removeStmt->execute([
     $doctor_id,
     $degree_id
 ]);
-
-/*
-|--------------------------------------------------------------------------
-| RESPONSE
-|--------------------------------------------------------------------------
-*/
 
 if($isRemoved) {
 

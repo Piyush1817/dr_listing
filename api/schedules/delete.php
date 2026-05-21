@@ -1,8 +1,11 @@
 <?php
 
 require_once "../../includes/cors.php";
+require_once "../../includes/doctor_auth.php";
 require_once "../../includes/response.php";
 require_once "../../config/db.php";
+
+$doctor_id = $_SESSION['doctor_id'];
 
 /*
 |--------------------------------------------------------------------------
@@ -11,12 +14,6 @@ require_once "../../config/db.php";
 */
 
 $id = $_POST['id'] ?? '';
-
-/*
-|--------------------------------------------------------------------------
-| VALIDATION
-|--------------------------------------------------------------------------
-*/
 
 if(empty($id)) {
 
@@ -34,13 +31,18 @@ $checkQuery = "
 SELECT id
 FROM hospital_doctor_schedules
 WHERE id = ?
+AND doctor_id = ?
 AND status = 1
 LIMIT 1
 ";
 
 $checkStmt = $conn->prepare($checkQuery);
 
-$checkStmt->execute([$id]);
+$checkStmt->execute([
+
+    $id,
+    $doctor_id
+]);
 
 $schedule = $checkStmt->fetch(PDO::FETCH_ASSOC);
 
@@ -62,17 +64,16 @@ SET
     status = 0,
     updated_at = NOW()
 WHERE id = ?
+AND doctor_id = ?
 ";
 
 $deleteStmt = $conn->prepare($deleteQuery);
 
-$isDeleted = $deleteStmt->execute([$id]);
+$isDeleted = $deleteStmt->execute([
 
-/*
-|--------------------------------------------------------------------------
-| RESPONSE
-|--------------------------------------------------------------------------
-*/
+    $id,
+    $doctor_id
+]);
 
 if($isDeleted) {
 

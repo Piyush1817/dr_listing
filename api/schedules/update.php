@@ -5,23 +5,13 @@ require_once "../../includes/doctor_auth.php";
 require_once "../../includes/response.php";
 require_once "../../config/db.php";
 
-/*
-|--------------------------------------------------------------------------
-| GET FORM DATA
-|--------------------------------------------------------------------------
-*/
+$doctor_id = $_SESSION['doctor_id'];
 
 $id = $_POST['id'] ?? '';
 
 $day_of_week = $_POST['day_of_week'] ?? '';
 $start_time = $_POST['start_time'] ?? '';
 $end_time = $_POST['end_time'] ?? '';
-
-/*
-|--------------------------------------------------------------------------
-| VALIDATION
-|--------------------------------------------------------------------------
-*/
 
 if(empty($id)) {
 
@@ -49,13 +39,18 @@ $checkQuery = "
 SELECT id
 FROM hospital_doctor_schedules
 WHERE id = ?
+AND doctor_id = ?
 AND status = 1
 LIMIT 1
 ";
 
 $checkStmt = $conn->prepare($checkQuery);
 
-$checkStmt->execute([$id]);
+$checkStmt->execute([
+
+    $id,
+    $doctor_id
+]);
 
 $schedule = $checkStmt->fetch(PDO::FETCH_ASSOC);
 
@@ -79,6 +74,7 @@ SET
     end_time = ?,
     updated_at = NOW()
 WHERE id = ?
+AND doctor_id = ?
 ";
 
 $updateStmt = $conn->prepare($updateQuery);
@@ -88,14 +84,9 @@ $isUpdated = $updateStmt->execute([
     $day_of_week,
     $start_time,
     $end_time,
-    $id
+    $id,
+    $doctor_id
 ]);
-
-/*
-|--------------------------------------------------------------------------
-| RESPONSE
-|--------------------------------------------------------------------------
-*/
 
 if($isUpdated) {
 

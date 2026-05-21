@@ -1,16 +1,45 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| JSON HEADER
+|--------------------------------------------------------------------------
+*/
+
+header("Content-Type: application/json");
+
+/*
+|--------------------------------------------------------------------------
+| SUCCESS RESPONSE
+|--------------------------------------------------------------------------
+*/
+
 function success($message, $data = []) {
+
     echo json_encode([
+
         "status" => true,
         "message" => $message,
         "data" => $data
     ]);
+
+    exit;
 }
 
-function error($message) {
+/*
+|--------------------------------------------------------------------------
+| ERROR RESPONSE
+|--------------------------------------------------------------------------
+*/
+
+function error($message, $data = []) {
+
     echo json_encode([
+
         "status" => false,
-        "message" => $message
+        "message" => $message,
+        "data" => $data
     ]);
+
+    exit;
 }
